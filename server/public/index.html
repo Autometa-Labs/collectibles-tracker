@@ -563,6 +563,245 @@
             transition: width 0.3s ease;
         }
 
+        /* Card Scanning Illustration */
+        .scan-illustration {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            color: white;
+            margin: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scan-illustration::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.05) 10px,
+                rgba(255,255,255,0.05) 20px
+            );
+            animation: scan-lines 3s linear infinite;
+        }
+
+        @keyframes scan-lines {
+            0% { transform: translateX(-100%) translateY(-100%); }
+            100% { transform: translateX(100%) translateY(100%); }
+        }
+
+        .scan-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .scan-phone {
+            width: 120px;
+            height: 200px;
+            background: #1f2937;
+            border-radius: 20px;
+            margin: 0 auto 2rem;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .scan-screen {
+            width: 100px;
+            height: 160px;
+            background: #3b82f6;
+            border-radius: 10px;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scan-card {
+            width: 60px;
+            height: 80px;
+            background: linear-gradient(45deg, #fbbf24, #f59e0b);
+            border-radius: 6px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .scan-laser {
+            width: 100%;
+            height: 2px;
+            background: #ef4444;
+            position: absolute;
+            top: 50%;
+            animation: scan-laser 2s ease-in-out infinite;
+            box-shadow: 0 0 10px #ef4444;
+        }
+
+        @keyframes scan-laser {
+            0%, 100% { transform: translateY(-40px); opacity: 0; }
+            50% { transform: translateY(40px); opacity: 1; }
+        }
+
+        .scan-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .scan-feature {
+            text-align: center;
+        }
+
+        .scan-feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .scan-feature h4 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .scan-feature p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        /* Enhanced Chart Visuals */
+        .chart-visual-enhancement {
+            position: relative;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .chart-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .chart-type {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .chart-type:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .chart-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+        }
+
+        .chart-icon.line {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        }
+
+        .chart-icon.pie {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .chart-icon.bar {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .chart-icon.area {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+        /* Portfolio Value Visualization */
+        .portfolio-visual {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            border-radius: 12px;
+            padding: 2rem;
+            color: white;
+            margin: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .portfolio-visual::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .portfolio-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .value-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .value-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .value-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .value-amount {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .value-change {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .value-change.positive {
+            color: #10b981;
+        }
+
+        .value-change.negative {
+            color: #ef4444;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .dashboard-header {
@@ -749,6 +988,113 @@
                                 <div class="progress-fill" style="width: 52%"></div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Card Scanning Feature Section -->
+    <section class="section" id="scanFeature">
+        <div class="container">
+            <div class="scan-illustration">
+                <div class="scan-content">
+                    <h2>📱 Scan Cards Instantly</h2>
+                    <p>Use your phone camera to instantly add cards to your portfolio</p>
+                    
+                    <div class="scan-phone">
+                        <div class="scan-screen">
+                            <div class="scan-card"></div>
+                            <div class="scan-laser"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="scan-features">
+                        <div class="scan-feature">
+                            <span class="scan-feature-icon">📸</span>
+                            <h4>Smart Recognition</h4>
+                            <p>AI-powered card identification from photos</p>
+                        </div>
+                        <div class="scan-feature">
+                            <span class="scan-feature-icon">⚡</span>
+                            <h4>Instant Add</h4>
+                            <p>Cards added to your collection in seconds</p>
+                        </div>
+                        <div class="scan-feature">
+                            <span class="scan-feature-icon">💎</span>
+                            <h4>Condition Detection</h4>
+                            <p>Automatic condition assessment and pricing</p>
+                        </div>
+                        <div class="scan-feature">
+                            <span class="scan-feature-icon">📊</span>
+                            <h4>Real-time Values</h4>
+                            <p>Live market prices updated instantly</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Portfolio Analytics Visualization -->
+    <section class="section" id="portfolioAnalytics">
+        <div class="container">
+            <h2 class="section-title">📈 Portfolio Analytics & Insights</h2>
+            
+            <div class="portfolio-visual">
+                <div class="portfolio-content">
+                    <h3>Your Collection at a Glance</h3>
+                    <p>Comprehensive analytics to track your investment performance</p>
+                    
+                    <div class="value-cards">
+                        <div class="value-card">
+                            <span class="value-icon">💰</span>
+                            <div class="value-amount">$3,450</div>
+                            <div class="value-change positive">+$125 this week</div>
+                        </div>
+                        <div class="value-card">
+                            <span class="value-icon">📈</span>
+                            <div class="value-amount">+23.2%</div>
+                            <div class="value-change positive">Total return</div>
+                        </div>
+                        <div class="value-card">
+                            <span class="value-icon">🏆</span>
+                            <div class="value-amount">Charizard</div>
+                            <div class="value-change positive">Best performer</div>
+                        </div>
+                        <div class="value-card">
+                            <span class="value-icon">🎯</span>
+                            <div class="value-amount">85%</div>
+                            <div class="value-change">Base set complete</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chart-visual-enhancement">
+                <h3>Multiple Chart Views</h3>
+                <p>Visualize your portfolio performance with various chart types</p>
+                
+                <div class="chart-types">
+                    <div class="chart-type">
+                        <div class="chart-icon line">📈</div>
+                        <h4>Line Charts</h4>
+                        <p>Track portfolio value over time with detailed trend analysis</p>
+                    </div>
+                    <div class="chart-type">
+                        <div class="chart-icon pie">🥧</div>
+                        <h4>Pie Charts</h4>
+                        <p>See collection distribution by set, rarity, or card type</p>
+                    </div>
+                    <div class="chart-type">
+                        <div class="chart-icon bar">📊</div>
+                        <h4>Bar Charts</h4>
+                        <p>Compare individual card values and performance metrics</p>
+                    </div>
+                    <div class="chart-type">
+                        <div class="chart-icon area">📉</div>
+                        <h4>Area Charts</h4>
+                        <p>Visualize portfolio growth and market trends over time</p>
                     </div>
                 </div>
             </div>
