@@ -1,0 +1,19 @@
+{{- if .Values.mongodb.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "collectibles-tracker-chart.fullname" . }}-mongodb
+  labels:
+    {{- include "collectibles-tracker-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: mongodb
+spec:
+  type: {{ .Values.mongodb.service.type }}
+  ports:
+    - port: {{ .Values.mongodb.service.port }}
+      targetPort: mongodb
+      protocol: TCP
+      name: mongodb
+  selector:
+    {{- include "collectibles-tracker-chart.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: mongodb
+{{- end }}
