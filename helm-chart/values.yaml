@@ -52,9 +52,11 @@ securityContext: {}
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
-  type: ClusterIP
+  type: NodePort
   # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
   port: 8081
+  # NodePort for external access (must be in range 30000-32767)
+  nodePort: 30081
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:
@@ -121,3 +123,41 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# MongoDB configuration
+mongodb:
+  enabled: true
+  image:
+    repository: mongo
+    tag: "7.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 27017
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 8Gi
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+  env:
+    MONGO_INITDB_DATABASE: "collectibles-tracker"
+  healthcheck:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 5
+
+# Application environment variables
+env:
+  NODE_ENV: "production"
+  PORT: "8081"
+  MONGODB_URI: "mongodb://collectibles-tracker-collectibles-tracker-chart-mongodb:27017/collectibles-tracker"
+  JWT_SECRET: "your-super-secret-jwt-key-change-this-in-production"
