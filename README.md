@@ -96,10 +96,10 @@ docker build -t collectibles-tracker:latest .
 3. **Deploy with Helm**
 ```bash
 # Install the application with MongoDB
-helm install collectibles-tracker collectibles-tracker/helm-chart/
+helm install collectibles-tracker helm-charts/collectibles-tracker
 
 # Or upgrade existing deployment
-helm upgrade collectibles-tracker collectibles-tracker/helm-chart/
+helm upgrade collectibles-tracker helm-charts/collectibles-tracker
 ```
 
 This will deploy:
