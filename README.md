@@ -48,14 +48,39 @@ A comprehensive platform for tracking collectible card values and managing perso
 /api/collections   - Personal collection management
 ```
 
+### Deployment Architecture
+
+The application is designed for **cloud-native deployment** using Kubernetes and Helm:
+
+#### **Kubernetes Components**
+- **Application Pod**: Node.js/Express API server with auto-scaling capabilities
+- **MongoDB Pod**: MongoDB 7.0 with persistent storage and health monitoring
+- **Services**: Internal ClusterIP services for secure pod-to-pod communication
+- **Persistent Volumes**: 8Gi storage for MongoDB data persistence
+- **ConfigMaps & Secrets**: Environment configuration and sensitive data management
+
+#### **Production Features**
+- **Health Checks**: Liveness and readiness probes for both application and database
+- **Resource Management**: CPU and memory limits/requests for optimal resource usage
+- **Persistent Storage**: Data survives pod restarts and cluster maintenance
+- **Service Discovery**: Automatic DNS-based service discovery within the cluster
+- **Horizontal Scaling**: Ready for horizontal pod autoscaling based on CPU/memory usage
+
+#### **Infrastructure as Code**
+- **Helm Charts**: Declarative Kubernetes deployments with customizable values
+- **Version Management**: Chart versioning (v0.2.0) with application versioning (v1.1.0)
+- **Environment Separation**: Easy deployment to dev/staging/production environments
+- **Rollback Support**: Built-in Helm rollback capabilities for safe deployments
+
 ## 🛠️ Installation & Setup
 
 ### Prerequisites
-- Docker and Docker Compose
-- Node.js (v16 or higher) - only if running without Docker
-- npm or yarn
+- **Kubernetes cluster** (Docker Desktop, minikube, or cloud provider)
+- **Helm 3.x** for package management
+- **kubectl** configured for your cluster
+- **Docker** for building images (optional for development)
 
-### Quick Start with Docker Compose (Recommended)
+### Quick Start with Kubernetes & Helm (Recommended)
 
 1. **Clone the repository**
 ```bash
@@ -63,33 +88,49 @@ git clone <repository-url>
 cd collectibles-tracker
 ```
 
-2. **Environment Configuration**
+2. **Build the application image** (if needed)
 ```bash
-cd server
-cp .env.example .env
-# The default configuration works with Docker Compose
-cd ..
+docker build -t collectibles-tracker:latest .
 ```
 
-3. **Start the application with Docker Compose**
+3. **Deploy with Helm**
 ```bash
-docker-compose up --build
+# Install the application with MongoDB
+helm install collectibles-tracker collectibles-tracker/helm-chart/
+
+# Or upgrade existing deployment
+helm upgrade collectibles-tracker collectibles-tracker/helm-chart/
 ```
 
-This will:
-- Start MongoDB in a container with persistent data
-- Build and start the Node.js API server
-- Automatically seed the database with sample data
-- Make the API available at `http://localhost:5000`
+This will deploy:
+- **MongoDB 7.0** with persistent storage (8Gi)
+- **Node.js API server** with environment variables configured
+- **Kubernetes services** for internal communication
+- **Health checks** and resource limits
+- **Persistent data storage** that survives pod restarts
 
-4. **Stop the application**
+4. **Check deployment status**
 ```bash
-docker-compose down
+kubectl get pods -l app.kubernetes.io/instance=collectibles-tracker
+kubectl get services -l app.kubernetes.io/instance=collectibles-tracker
+```
+
+5. **Access the application**
+```bash
+# Port forward to access locally
+kubectl port-forward service/collectibles-tracker-collectibles-tracker-chart 8081:8081
+
+# Application will be available at http://localhost:8081
+```
+
+6. **Uninstall**
+```bash
+helm uninstall collectibles-tracker
 ```
 
 ### Alternative: Local Development Setup
 
-If you prefer to run without Docker:
+For local development without Kubernetes:
 
 1. **Install MongoDB locally**
 ```bash
@@ -103,7 +144,7 @@ sudo apt-get install mongodb
 mongod
 ```
 
-2. **Update environment configuration**
+2. **Environment Configuration**
 ```bash
 cd server
 cp .env.example .env
@@ -112,21 +153,53 @@ cp .env.example .env
 
 3. **Install dependencies and start**
 ```bash
-npm run install-all
+npm install
 cd server
 npm run seed
 npm run dev
 ```
 
-The API will be available at `http://localhost:5000`
+The API will be available at `http://localhost:3000`
 
-### Environment Variables
+### Kubernetes Environment Variables
+
+The Helm chart automatically configures these environment variables:
 
 ```env
-MONGODB_URI=mongodb://localhost:27017/collectibles-tracker
-JWT_SECRET=your-super-secret-jwt-key
-PORT=5000
-NODE_ENV=development
+MONGODB_URI=mongodb://collectibles-tracker-collectibles-tracker-chart-mongodb:27017/collectibles-tracker
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+PORT=8081
+NODE_ENV=production
+```
+
+### Helm Chart Configuration
+
+Customize the deployment by modifying `collectibles-tracker/helm-chart/values.yaml`:
+
+```yaml
+# MongoDB Configuration
+mongodb:
+  enabled: true
+  image:
+    repository: mongo
+    tag: "7.0"
+  persistence:
+    enabled: true
+    size: 8Gi
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Application Configuration
+image:
+  repository: collectibles-tracker
+  tag: "latest"
+  pullPolicy: Never
+
+service:
+  type: ClusterIP
+  port: 8081
 ```
 
 ## 📊 Database Schema
