@@ -1,0 +1,211 @@
+{
+  "projectName": "collectibles-tracker",
+  "reviewSettings": {
+    "model": "claude-sonnet-4-20250514",
+    "maxTokens": 4000,
+    "temperature": 0.1,
+    "maxFileSize": 50000,
+    "maxTotalSize": 200000
+  },
+  "triggerBranches": [
+    "main",
+    "develop",
+    "feature/add_mongo_db"
+  ],
+  "skipPatterns": [
+    "node_modules/**",
+    "*.lock",
+    "package-lock.json",
+    "yarn.lock",
+    "*.min.js",
+    "*.min.css",
+    "*.map",
+    "*.log",
+    "*.tmp",
+    ".cache/**",
+    "dist/**",
+    "build/**",
+    "coverage/**",
+    ".git/**",
+    ".DS_Store",
+    "Thumbs.db",
+    "*.env",
+    "*.env.*",
+    "*.key",
+    "*.pem",
+    "*.p12",
+    "*.pfx"
+  ],
+  "criticalPatterns": [
+    "eval\\(",
+    "innerHTML\\s*=",
+    "document\\.write",
+    "setTimeout\\(.*string",
+    "setInterval\\(.*string",
+    "new Function\\(",
+    "process\\.env\\.[A-Z_]+\\s*=",
+    "password.*=.*['\"].*['\"]",
+    "secret.*=.*['\"].*['\"]",
+    "api[_-]?key.*=.*['\"].*['\"]",
+    "token.*=.*['\"].*['\"]"
+  ],
+  "securityRules": {
+    "javascript": [
+      {
+        "pattern": "req\\.(query|params|body)\\.[a-zA-Z_$][a-zA-Z0-9_$]*",
+        "message": "Direct use of user input without validation detected",
+        "severity": "high"
+      },
+      {
+        "pattern": "\\$\\{.*req\\.",
+        "message": "Template literal with user input - potential XSS vulnerability",
+        "severity": "critical"
+      },
+      {
+        "pattern": "exec\\(.*req\\.",
+        "message": "Command execution with user input - potential command injection",
+        "severity": "critical"
+      }
+    ],
+    "sql": [
+      {
+        "pattern": "SELECT.*\\+.*req\\.",
+        "message": "SQL query concatenation with user input - potential SQL injection",
+        "severity": "critical"
+      }
+    ],
+    "docker": [
+      {
+        "pattern": "USER\\s+root",
+        "message": "Running container as root user - security risk",
+        "severity": "medium"
+      },
+      {
+        "pattern": "ADD\\s+http",
+        "message": "Using ADD with URL - prefer COPY for security",
+        "severity": "low"
+      }
+    ]
+  },
+  "performanceRules": {
+    "javascript": [
+      {
+        "pattern": "for\\s*\\(.*\\.length",
+        "message": "Loop condition calls .length on each iteration - cache the length",
+        "severity": "medium"
+      },
+      {
+        "pattern": "await.*for\\s*\\(",
+        "message": "Sequential async operations in loop - consider Promise.all for parallel execution",
+        "severity": "medium"
+      }
+    ],
+    "mongodb": [
+      {
+        "pattern": "find\\(\\)\\s*$",
+        "message": "MongoDB find() without limit - potential performance issue",
+        "severity": "medium"
+      },
+      {
+        "pattern": "findOne\\(\\{[^}]*\\}\\)(?!.*index)",
+        "message": "MongoDB query without index consideration",
+        "severity": "low"
+      }
+    ]
+  },
+  "codeQualityRules": {
+    "javascript": [
+      {
+        "pattern": "console\\.(log|error|warn|info)",
+        "message": "Console statement found - consider using proper logging",
+        "severity": "low"
+      },
+      {
+        "pattern": "var\\s+",
+        "message": "Use 'const' or 'let' instead of 'var'",
+        "severity": "low"
+      },
+      {
+        "pattern": "==\\s*(?!null)",
+        "message": "Use strict equality (===) instead of loose equality (==)",
+        "severity": "medium"
+      }
+    ],
+    "general": [
+      {
+        "pattern": "TODO|FIXME|HACK",
+        "message": "TODO/FIXME comment found - consider addressing before merge",
+        "severity": "low"
+      }
+    ]
+  },
+  "fileTypeSettings": {
+    "javascript": {
+      "extensions": [".js", ".jsx"],
+      "maxComplexity": 10,
+      "requireTests": true
+    },
+    "typescript": {
+      "extensions": [".ts", ".tsx"],
+      "maxComplexity": 10,
+      "requireTests": true,
+      "strictMode": true
+    },
+    "docker": {
+      "extensions": ["Dockerfile", ".dockerfile"],
+      "requireHealthCheck": true,
+      "requireNonRootUser": true
+    },
+    "kubernetes": {
+      "extensions": [".yaml", ".yml"],
+      "requireResourceLimits": true,
+      "requireSecurityContext": true
+    }
+  },
+  "exemptions": {
+    "files": [
+      "test/**",
+      "tests/**",
+      "spec/**",
+      "*.test.js",
+      "*.spec.js",
+      "*.test.ts",
+      "*.spec.ts"
+    ],
+    "rules": [
+      "console-statements",
+      "test-requirements"
+    ]
+  },
+  "notifications": {
+    "onCriticalIssues": true,
+    "onSecurityConcerns": true,
+    "onPerformanceIssues": false,
+    "onCodeQualityIssues": false
+  },
+  "integrations": {
+    "github": {
+      "createReview": true,
+      "postComments": true,
+      "updateStatus": true,
+      "blockMerge": true
+    },
+    "slack": {
+      "enabled": false,
+      "webhook": "",
+      "channel": "#code-reviews"
+    }
+  },
+  "customPrompts": {
+    "collectibles-tracker": {
+      "context": "This is a Node.js/Express application for tracking collectible card values with MongoDB, Auth0, and Kubernetes deployment.",
+      "focus": [
+        "Database schema consistency",
+        "API security and validation",
+        "Authentication flows",
+        "Performance for large collections",
+        "Data integrity"
+      ]
+    }
+  }
+}
