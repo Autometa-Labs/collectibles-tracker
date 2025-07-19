@@ -51,47 +51,70 @@ A comprehensive platform for tracking collectible card values and managing perso
 ## 🛠️ Installation & Setup
 
 ### Prerequisites
-- Node.js (v16 or higher)
-- MongoDB (local or cloud)
+- Docker and Docker Compose
+- Node.js (v16 or higher) - only if running without Docker
 - npm or yarn
 
-### Backend Setup
+### Quick Start with Docker Compose (Recommended)
 
-1. **Clone and install dependencies**
+1. **Clone the repository**
 ```bash
 git clone <repository-url>
 cd collectibles-tracker
-npm run install-all
 ```
 
 2. **Environment Configuration**
 ```bash
 cd server
 cp .env.example .env
-# Edit .env with your configuration
+# The default configuration works with Docker Compose
+cd ..
 ```
 
-3. **Start MongoDB**
+3. **Start the application with Docker Compose**
 ```bash
-# Local MongoDB
+docker-compose up --build
+```
+
+This will:
+- Start MongoDB in a container with persistent data
+- Build and start the Node.js API server
+- Automatically seed the database with sample data
+- Make the API available at `http://localhost:5000`
+
+4. **Stop the application**
+```bash
+docker-compose down
+```
+
+### Alternative: Local Development Setup
+
+If you prefer to run without Docker:
+
+1. **Install MongoDB locally**
+```bash
+# macOS with Homebrew
+brew install mongodb-community
+
+# Ubuntu/Debian
+sudo apt-get install mongodb
+
+# Start MongoDB
 mongod
-
-# Or use MongoDB Atlas cloud connection
 ```
 
-4. **Seed the database**
+2. **Update environment configuration**
 ```bash
+cd server
+cp .env.example .env
+# Edit .env and change MONGODB_URI to: mongodb://localhost:27017/collectibles-tracker
+```
+
+3. **Install dependencies and start**
+```bash
+npm run install-all
 cd server
 npm run seed
-```
-
-5. **Start the development server**
-```bash
-# From root directory
-npm run dev
-
-# Or start backend only
-cd server
 npm run dev
 ```
 

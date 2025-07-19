@@ -28,22 +28,37 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files from public directory
 app.use(express.static('server/public'));
 
-// Database connection (disabled for demo - would need MongoDB deployment in production)
-console.log('Running in demo mode without database connection');
-// Uncomment below lines when MongoDB is available:
-// const connectDB = async () => {
-//   try {
-//     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/collectibles-tracker', {
-//       useNewUrlParser: true,
-//       useUnifiedTopology: true,
-//       serverSelectionTimeoutMS: 5000,
-//     });
-//     console.log('Connected to MongoDB');
-//   } catch (error) {
-//     console.warn('MongoDB connection failed, running without database:', error.message);
-//   }
-// };
-// connectDB();
+// Database connection
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/collectibles-tracker', {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 30000, // 30 seconds for Docker startup
+      socketTimeoutMS: 45000,
+    });
+    console.log('Connected to MongoDB');
+    
+    // Seed database if needed
+    if (process.env.NODE_ENV !== 'test') {
+      try {
+        const seedDatabase = require('./scripts/seedDatabase');
+        await seedDatabase();
+      } catch (seedError) {
+        console.log('Database seeding skipped or failed:', seedError.message);
+      }
+    }
+  } catch (error) {
+    console.error('MongoDB connection failed:', error.message);
+    // In production, we want to retry connection
+    if (process.env.NODE_ENV === 'production') {
+      console.log('Retrying MongoDB connection in 5 seconds...');
+      setTimeout(connectDB, 5000);
+    }
+  }
+};
+
+connectDB();
 
 // API Routes
 app.use('/api/categories', require('./routes/categories'));
@@ -55,6 +70,7 @@ app.use('/api/collections', require('./routes/collections'));
 
 // API info endpoint (JSON response)
 app.get('/api', (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
   res.json({
     message: 'Welcome to Collectibles Tracker API',
     version: '1.0.0',
@@ -69,7 +85,7 @@ app.get('/api', (req, res) => {
       collections: '/api/collections'
     },
     status: 'running',
-    mode: 'demo (no database)',
+    database: dbStatus,
     timestamp: new Date().toISOString()
   });
 });
