@@ -2,7 +2,6 @@ node_modules
 
 # Claude AI Code Reviewer
 .github/claude-reviewer/node_modules/
-.github/claude-reviewer/package-lock.json
 .github/claude-reviewer/review-result.json
 .github/claude-reviewer/.env
 
