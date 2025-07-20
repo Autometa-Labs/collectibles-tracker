@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const Category = require('../models/Category');
-const Set = require('../models/Set');
+const SetModel = require('../models/Set');
 const Card = require('../models/Card');
 require('dotenv').config();
 
@@ -16,7 +16,7 @@ const seedData = async () => {
 
     // Clear existing data
     await Category.deleteMany({});
-    await Set.deleteMany({});
+    await SetModel.deleteMany({});
     await Card.deleteMany({});
 
     // Create Pokemon category
@@ -97,7 +97,7 @@ const seedData = async () => {
 
     const createdSets = [];
     for (const setData of baseSets) {
-      const set = new Set({
+      const set = new SetModel({
         ...setData,
         category: pokemonCategory._id
       });
@@ -251,7 +251,13 @@ const seedData = async () => {
     const baseSet = createdSets[0];
     for (const cardData of sampleCards) {
       const card = new Card({
-        ...cardData,
+        name: cardData.name,
+        slug: cardData.slug,
+        cardNumber: cardData.cardNumber,
+        rarity: cardData.rarity,
+        imageUrl: cardData.imageUrl,
+        attributes: cardData.attributes,
+        marketData: cardData.marketData,
         set: baseSet._id,
         category: pokemonCategory._id
       });
@@ -307,7 +313,7 @@ const seedData = async () => {
 
     console.log('\n🎉 Database seeding completed successfully!');
     console.log(`Created ${await Category.countDocuments()} categories`);
-    console.log(`Created ${await Set.countDocuments()} sets`);
+    console.log(`Created ${await SetModel.countDocuments()} sets`);
     console.log(`Created ${await Card.countDocuments()} cards`);
 
   } catch (error) {

@@ -115,15 +115,49 @@ kubectl get pods -l app.kubernetes.io/instance=collectibles-tracker
 kubectl get services -l app.kubernetes.io/instance=collectibles-tracker
 ```
 
-5. **Access the application**
+5. **Seed the database with sample data**
 ```bash
-# Port forward to access locally
-kubectl port-forward service/collectibles-tracker-collectibles-tracker-chart 8081:8081
+# Get the application pod name
+kubectl get pods -l app.kubernetes.io/name=collectibles-tracker-chart
+
+# Seed the database (replace POD_NAME with actual pod name)
+kubectl exec -it <POD_NAME> -- node server/scripts/seedDatabase.js
+
+# Example:
+kubectl exec -it collectibles-tracker-collectibles-tracker-chart-b9f689d55-llffp -- node server/scripts/seedDatabase.js
+```
+
+This will populate the database with:
+- **Pokemon category** with sample sets (Base Set, Jungle, Scarlet & Violet)
+- **Sample Pokemon cards** including Charizard, Blastoise, Venusaur, and Pikachu
+- **Market data** with realistic pricing for different conditions (Raw, PSA 9, PSA 10)
+- **Additional categories** (Magic: The Gathering, NBA Cards, One Piece) for future expansion
+
+6. **Access the application**
+
+You have two options to access the application:
+
+**Option A: Use NodePort (Recommended)**
+```bash
+# Access directly via NodePort (no port-forward needed)
+# Application will be available at http://localhost:30081
+```
+
+**Option B: Port Forward to Pod**
+```bash
+# Get the application pod name
+kubectl get pods -l app.kubernetes.io/name=collectibles-tracker-chart
+
+# Port forward to the specific pod (replace POD_NAME with actual pod name)
+kubectl port-forward <POD_NAME> 8081:8081
+
+# Example:
+kubectl port-forward collectibles-tracker-collectibles-tracker-chart-77ff6847cbk4rl7 8081:8081
 
 # Application will be available at http://localhost:8081
 ```
 
-6. **Uninstall**
+7. **Uninstall**
 ```bash
 helm uninstall collectibles-tracker
 ```
@@ -151,11 +185,23 @@ cp .env.example .env
 # Edit .env and change MONGODB_URI to: mongodb://localhost:27017/collectibles-tracker
 ```
 
-3. **Install dependencies and start**
+3. **Install dependencies and seed the database**
 ```bash
 npm install
 cd server
+npm install
+
+# Seed the database with sample data
 npm run seed
+```
+
+This will populate your local MongoDB with the same sample data as the Kubernetes deployment:
+- Pokemon category with Base Set, Jungle, and Scarlet & Violet sets
+- Sample Pokemon cards (Charizard, Blastoise, Venusaur, Pikachu) with market pricing
+- Additional categories for future expansion
+
+4. **Start the development server**
+```bash
 npm run dev
 ```
 
