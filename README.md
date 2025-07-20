@@ -134,9 +134,25 @@ This will populate the database with:
 - **Additional categories** (Magic: The Gathering, NBA Cards, One Piece) for future expansion
 
 6. **Access the application**
+
+You have two options to access the application:
+
+**Option A: Use NodePort (Recommended)**
 ```bash
-# Port forward to access locally
-kubectl port-forward service/collectibles-tracker-collectibles-tracker-chart 8081:8081
+# Access directly via NodePort (no port-forward needed)
+# Application will be available at http://localhost:30081
+```
+
+**Option B: Port Forward to Pod**
+```bash
+# Get the application pod name
+kubectl get pods -l app.kubernetes.io/name=collectibles-tracker-chart
+
+# Port forward to the specific pod (replace POD_NAME with actual pod name)
+kubectl port-forward <POD_NAME> 8081:8081
+
+# Example:
+kubectl port-forward collectibles-tracker-collectibles-tracker-chart-77ff6847cbk4rl7 8081:8081
 
 # Application will be available at http://localhost:8081
 ```
