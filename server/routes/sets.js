@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Set = require('../models/Set');
+const SetModel = require('../models/Set');
 const Category = require('../models/Category');
 
 // GET /api/sets - Get sets with filtering
@@ -56,13 +56,13 @@ router.get('/', async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
     
     const [sets, total] = await Promise.all([
-      Set.find(query)
+      SetModel.find(query)
         .populate('category', 'name slug')
         .select('-__v')
         .sort(sortObj)
         .skip(skip)
         .limit(parseInt(limit)),
-      Set.countDocuments(query)
+      SetModel.countDocuments(query)
     ]);
 
     res.json({
@@ -87,7 +87,7 @@ router.get('/', async (req, res) => {
 // GET /api/sets/:slug - Get set by slug
 router.get('/:slug', async (req, res) => {
   try {
-    const set = await Set.findOne({ 
+    const set = await SetModel.findOne({ 
       slug: req.params.slug, 
       isActive: true 
     })
@@ -148,7 +148,7 @@ router.get('/category/:categorySlug', async (req, res) => {
         sortObj = { releaseDate: -1 };
     }
     
-    const sets = await Set.find(query)
+    const sets = await SetModel.find(query)
       .select('-__v')
       .sort(sortObj)
       .limit(parseInt(limit));

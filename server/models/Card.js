@@ -41,67 +41,11 @@ const cardSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  // Universal card attributes
-  attributes: {
-    // Pokemon-specific
-    type: [String], // Fire, Water, etc.
-    hp: Number,
-    stage: String, // Basic, Stage 1, etc.
-    attacks: [{
-      name: String,
-      cost: [String],
-      damage: String,
-      description: String
-    }],
-    weakness: String,
-    resistance: String,
-    retreatCost: Number,
-    artist: String,
-    
-    // Sports card specific
-    player: String,
-    team: String,
-    position: String,
-    rookie: Boolean,
-    autograph: Boolean,
-    jersey: Boolean,
-    
-    // MTG specific
-    manaCost: String,
-    cmc: Number, // Converted mana cost
-    colors: [String],
-    cardType: String,
-    subTypes: [String],
-    power: String,
-    toughness: String,
-    
-    // Flexible additional attributes
-    additional: mongoose.Schema.Types.Mixed
-  },
+  // Universal card attributes - using Mixed type for flexibility
+  attributes: mongoose.Schema.Types.Mixed,
   
-  // Market data
-  marketData: {
-    lastUpdated: {
-      type: Date,
-      default: Date.now
-    },
-    averagePrice: {
-      raw: Number,
-      psa9: Number,
-      psa10: Number,
-      bgs9: Number,
-      bgs10: Number
-    },
-    priceRange: {
-      low: Number,
-      high: Number
-    },
-    salesVolume: {
-      daily: Number,
-      weekly: Number,
-      monthly: Number
-    }
-  }
+  // Market data - using Mixed type for flexibility
+  marketData: mongoose.Schema.Types.Mixed
 }, {
   timestamps: true
 });

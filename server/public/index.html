@@ -1129,45 +1129,15 @@
     <section class="section" id="trending">
         <div class="container">
             <h2 class="section-title">🔥 Trending Cards</h2>
-            <div class="trending-section">
+            <div class="trending-section" id="trendingCards">
                 <div class="trending-item">
                     <div class="trending-info">
-                        <h4>Charizard VMAX</h4>
-                        <p>Champion's Path • Secret Rare</p>
+                        <h4>Loading...</h4>
+                        <p>Fetching trending cards from database...</p>
                     </div>
                     <div class="trending-price">
-                        <div class="card-price">$450.00</div>
-                        <span class="price-change price-up">+12.5%</span>
-                    </div>
-                </div>
-                <div class="trending-item">
-                    <div class="trending-info">
-                        <h4>Black Lotus</h4>
-                        <p>Alpha • Rare</p>
-                    </div>
-                    <div class="trending-price">
-                        <div class="card-price">$27,500.00</div>
-                        <span class="price-change price-up">+3.2%</span>
-                    </div>
-                </div>
-                <div class="trending-item">
-                    <div class="trending-info">
-                        <h4>Pikachu Illustrator</h4>
-                        <p>Promo • Ultra Rare</p>
-                    </div>
-                    <div class="trending-price">
-                        <div class="card-price">$6,350.00</div>
-                        <span class="price-change price-down">-2.1%</span>
-                    </div>
-                </div>
-                <div class="trending-item">
-                    <div class="trending-info">
-                        <h4>Mox Ruby</h4>
-                        <p>Beta • Rare</p>
-                    </div>
-                    <div class="trending-price">
-                        <div class="card-price">$8,200.00</div>
-                        <span class="price-change price-up">+5.8%</span>
+                        <div class="card-price">$0.00</div>
+                        <span class="price-change">Loading...</span>
                     </div>
                 </div>
             </div>
@@ -1177,42 +1147,12 @@
     <section class="section" id="cards">
         <div class="container">
             <h2 class="section-title">💎 Featured Cards</h2>
-            <div class="card-grid">
+            <div class="card-grid" id="featuredCards">
                 <div class="card">
-                    <div class="card-image">Card Image</div>
-                    <div class="card-name">Charizard</div>
-                    <div class="card-set">Base Set • Holo Rare</div>
-                    <div class="card-price">$350.00 <span class="price-change price-up">+8.2%</span></div>
-                </div>
-                <div class="card">
-                    <div class="card-image">Card Image</div>
-                    <div class="card-name">Blue-Eyes White Dragon</div>
-                    <div class="card-set">LOB • Ultra Rare</div>
-                    <div class="card-price">$125.00 <span class="price-change price-down">-3.1%</span></div>
-                </div>
-                <div class="card">
-                    <div class="card-image">Card Image</div>
-                    <div class="card-name">Lightning Bolt</div>
-                    <div class="card-set">Alpha • Common</div>
-                    <div class="card-price">$890.00 <span class="price-change price-up">+15.3%</span></div>
-                </div>
-                <div class="card">
-                    <div class="card-image">Card Image</div>
-                    <div class="card-name">Pikachu</div>
-                    <div class="card-set">Base Set • Common</div>
-                    <div class="card-price">$45.00 <span class="price-change price-up">+2.7%</span></div>
-                </div>
-                <div class="card">
-                    <div class="card-image">Card Image</div>
-                    <div class="card-name">Time Walk</div>
-                    <div class="card-set">Beta • Rare</div>
-                    <div class="card-price">$3,200.00 <span class="price-change price-up">+7.9%</span></div>
-                </div>
-                <div class="card">
-                    <div class="card-image">Card Image</div>
-                    <div class="card-name">Dark Magician</div>
-                    <div class="card-set">LOB • Ultra Rare</div>
-                    <div class="card-price">$85.00 <span class="price-change price-down">-1.5%</span></div>
+                    <div class="card-image">Loading...</div>
+                    <div class="card-name">Loading cards from database...</div>
+                    <div class="card-set">Please wait...</div>
+                    <div class="card-price">$0.00</div>
                 </div>
             </div>
         </div>
@@ -1225,221 +1165,6 @@
         </div>
     </footer>
 
-    <script>
-        // State management
-        let isLoggedIn = false;
-        let currentUser = null;
-
-        // DOM elements
-        const loginModal = document.getElementById('loginModal');
-        const loginBtn = document.getElementById('loginBtn');
-        const signupBtn = document.getElementById('signupBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const closeModal = document.querySelector('.close');
-        const loginForm = document.getElementById('loginForm');
-        const landingHero = document.getElementById('landingHero');
-        const userDashboard = document.getElementById('userDashboard');
-
-        // Modal functionality
-        loginBtn.addEventListener('click', () => {
-            loginModal.style.display = 'block';
-        });
-
-        signupBtn.addEventListener('click', () => {
-            loginModal.style.display = 'block';
-        });
-
-        closeModal.addEventListener('click', () => {
-            loginModal.style.display = 'none';
-        });
-
-        window.addEventListener('click', (e) => {
-            if (e.target === loginModal) {
-                loginModal.style.display = 'none';
-            }
-        });
-
-        // Login form submission
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            // Simulate login (in real app, this would call API)
-            currentUser = {
-                name: 'Alex',
-                email: 'alex@example.com',
-                cardsOwned: 247,
-                portfolioValue: 3450,
-                completedSets: 12,
-                baseSetProgress: 85
-            };
-            
-            isLoggedIn = true;
-            loginModal.style.display = 'none';
-            showDashboard();
-        });
-
-        // Logout functionality
-        logoutBtn.addEventListener('click', () => {
-            isLoggedIn = false;
-            currentUser = null;
-            showLanding();
-        });
-
-        // Show dashboard
-        function showDashboard() {
-            landingHero.style.display = 'none';
-            userDashboard.style.display = 'block';
-            document.getElementById('userName').textContent = currentUser.name;
-            
-            // Initialize chart
-            initializeChart();
-        }
-
-        // Show landing page
-        function showLanding() {
-            landingHero.style.display = 'block';
-            userDashboard.style.display = 'none';
-        }
-
-        // Initialize portfolio chart
-        function initializeChart() {
-            const canvas = document.getElementById('portfolioChart');
-            const ctx = canvas.getContext('2d');
-            
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Sample data for portfolio performance
-            const data = [2800, 2950, 3100, 2980, 3200, 3350, 3450];
-            const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'];
-            
-            // Chart dimensions
-            const padding = 60;
-            const chartWidth = canvas.width - 2 * padding;
-            const chartHeight = canvas.height - 2 * padding;
-            
-            // Find min and max values
-            const minValue = Math.min(...data) - 200;
-            const maxValue = Math.max(...data) + 200;
-            
-            // Draw grid lines
-            ctx.strokeStyle = '#e5e7eb';
-            ctx.lineWidth = 1;
-            
-            // Horizontal grid lines
-            for (let i = 0; i <= 5; i++) {
-                const y = padding + (chartHeight / 5) * i;
-                ctx.beginPath();
-                ctx.moveTo(padding, y);
-                ctx.lineTo(padding + chartWidth, y);
-                ctx.stroke();
-            }
-            
-            // Vertical grid lines
-            for (let i = 0; i <= 6; i++) {
-                const x = padding + (chartWidth / 6) * i;
-                ctx.beginPath();
-                ctx.moveTo(x, padding);
-                ctx.lineTo(x, padding + chartHeight);
-                ctx.stroke();
-            }
-            
-            // Draw line chart
-            ctx.strokeStyle = '#3b82f6';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            
-            data.forEach((value, index) => {
-                const x = padding + (chartWidth / (data.length - 1)) * index;
-                const y = padding + chartHeight - ((value - minValue) / (maxValue - minValue)) * chartHeight;
-                
-                if (index === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
-            });
-            
-            ctx.stroke();
-            
-            // Draw data points
-            ctx.fillStyle = '#3b82f6';
-            data.forEach((value, index) => {
-                const x = padding + (chartWidth / (data.length - 1)) * index;
-                const y = padding + chartHeight - ((value - minValue) / (maxValue - minValue)) * chartHeight;
-                
-                ctx.beginPath();
-                ctx.arc(x, y, 4, 0, 2 * Math.PI);
-                ctx.fill();
-            });
-            
-            // Draw labels
-            ctx.fillStyle = '#64748b';
-            ctx.font = '12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-            ctx.textAlign = 'center';
-            
-            labels.forEach((label, index) => {
-                const x = padding + (chartWidth / (labels.length - 1)) * index;
-                ctx.fillText(label, x, canvas.height - 20);
-            });
-            
-            // Draw y-axis labels
-            ctx.textAlign = 'right';
-            for (let i = 0; i <= 5; i++) {
-                const value = minValue + ((maxValue - minValue) / 5) * (5 - i);
-                const y = padding + (chartHeight / 5) * i + 4;
-                ctx.fillText('$' + Math.round(value), padding - 10, y);
-            }
-        }
-
-        // Add Cards functionality
-        document.getElementById('addCardBtn').addEventListener('click', () => {
-            alert('Add Cards feature would open a modal to search and add cards to your collection.\n\nIn a full implementation, this would connect to the card database API.');
-        });
-
-        // Search functionality (if search elements exist)
-        const searchBtn = document.querySelector('.search-btn');
-        const searchInput = document.querySelector('.search-input');
-        
-        if (searchBtn && searchInput) {
-            searchBtn.addEventListener('click', function() {
-                const query = searchInput.value;
-                if (query.trim()) {
-                    alert(`Searching for: "${query}"\n\nIn a full implementation, this would search our card database and display results.`);
-                }
-            });
-
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    searchBtn.click();
-                }
-            });
-        }
-
-        // Smooth scrolling for navigation
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                }
-            });
-        });
-
-        // Auto-login for demo purposes (remove in production)
-        setTimeout(() => {
-            if (!isLoggedIn) {
-                console.log('Auto-logging in for demo...');
-                // Uncomment the next line to auto-login for demo
-                // loginForm.dispatchEvent(new Event('submit'));
-            }
-        }, 2000);
-
-        console.log('CardTracker loaded successfully!');
-        console.log('Click "Sign In" to see your personal dashboard with portfolio tracking!');
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>

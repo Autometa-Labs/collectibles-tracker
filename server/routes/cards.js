@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Card = require('../models/Card');
-const Set = require('../models/Set');
+const SetModel = require('../models/Set');
 const Category = require('../models/Category');
 
 // GET /api/cards - Search and filter cards
@@ -30,7 +30,7 @@ router.get('/', async (req, res) => {
     }
     
     if (set) {
-      const setDoc = await Set.findOne({ slug: set });
+      const setDoc = await SetModel.findOne({ slug: set });
       if (setDoc) {
         query.set = setDoc._id;
       }
@@ -140,7 +140,7 @@ router.get('/set/:setSlug', async (req, res) => {
   try {
     const { page = 1, limit = 50, sort = 'cardNumber' } = req.query;
     
-    const set = await Set.findOne({ slug: req.params.setSlug });
+    const set = await SetModel.findOne({ slug: req.params.setSlug });
     if (!set) {
       return res.status(404).json({
         success: false,
