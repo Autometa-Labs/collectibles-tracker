@@ -115,11 +115,8 @@ kubectl get pods -l app.kubernetes.io/instance=collectibles-tracker
 kubectl get services -l app.kubernetes.io/instance=collectibles-tracker
 ```
 
-5. **Seed the database with data**
+5. **Import Pokemon card data**
 
-You have two options for populating the database:
-
-**Option A: Import Real Pokemon Cards (Recommended)**
 ```bash
 # Get the application pod name
 kubectl get pods -l app.kubernetes.io/name=collectibles-tracker-chart
@@ -143,21 +140,6 @@ This will import real Pokemon cards from the official Pokemon TCG API:
 - **Fossil**: 62 cards from the Fossil expansion
 - **Real card data**: Actual Pokemon card attributes, types, attacks, and high-quality images
 - **Expandable**: Easy to add more sets later
-
-**Option B: Use Sample Data (Development)**
-```bash
-# Seed with sample data (replace POD_NAME with actual pod name)
-kubectl exec -it <POD_NAME> -- node server/scripts/seedDatabase.js
-
-# Example:
-kubectl exec -it collectibles-tracker-collectibles-tracker-chart-b9f689d55-llffp -- node server/scripts/seedDatabase.js
-```
-
-This will populate the database with:
-- **Pokemon category** with sample sets (Base Set, Jungle, Scarlet & Violet)
-- **Sample Pokemon cards** including Charizard, Blastoise, Venusaur, and Pikachu
-- **Market data** with realistic pricing for different conditions (Raw, PSA 9, PSA 10)
-- **Additional categories** (Magic: The Gathering, NBA Cards, One Piece) for future expansion
 
 6. **Access the application**
 
@@ -211,20 +193,21 @@ cp .env.example .env
 # Edit .env and change MONGODB_URI to: mongodb://localhost:27017/collectibles-tracker
 ```
 
-3. **Install dependencies and seed the database**
+3. **Install dependencies and import Pokemon data**
 ```bash
 npm install
 cd server
 npm install
 
-# Seed the database with sample data
-npm run seed
+# Import Pokemon cards from the official API
+node scripts/importPokemon.js --sets base1,jungle,fossil
 ```
 
-This will populate your local MongoDB with the same sample data as the Kubernetes deployment:
-- Pokemon category with Base Set, Jungle, and Scarlet & Violet sets
-- Sample Pokemon cards (Charizard, Blastoise, Venusaur, Pikachu) with market pricing
-- Additional categories for future expansion
+This will populate your local MongoDB with real Pokemon card data:
+- **Base Set**: 102 authentic Pokemon cards including Charizard, Blastoise, Venusaur
+- **Jungle**: 64 cards from the classic Jungle expansion  
+- **Fossil**: 62 cards from the Fossil expansion
+- **Real card data**: Actual Pokemon card attributes, types, attacks, and high-quality images
 
 4. **Start the development server**
 ```bash
