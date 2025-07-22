@@ -45,7 +45,22 @@ const cardSchema = new mongoose.Schema({
   attributes: mongoose.Schema.Types.Mixed,
   
   // Market data - using Mixed type for flexibility
-  marketData: mongoose.Schema.Types.Mixed
+  marketData: mongoose.Schema.Types.Mixed,
+
+  // Import tracking fields
+  sourceId: {
+    type: String,
+    default: null,
+    index: true
+  },
+  sourceUrl: {
+    type: String,
+    default: null
+  },
+  lastUpdated: {
+    type: Date,
+    default: Date.now
+  }
 }, {
   timestamps: true
 });

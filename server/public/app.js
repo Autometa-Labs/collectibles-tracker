@@ -222,7 +222,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // Fetch and display real data from API
 async function loadFeaturedCards() {
     try {
-        const response = await fetch('/api/cards');
+        const response = await fetch('/api/cards?limit=6');
         const data = await response.json();
         
         if (data.success && data.data.length > 0) {
@@ -235,6 +235,15 @@ async function loadFeaturedCards() {
                 const cardElement = document.createElement('div');
                 cardElement.className = 'card';
                 
+                // Get set info (already populated in API response)
+                const setName = card.set ? card.set.name : 'Unknown Set';
+                
+                // Get price - handle missing marketData
+                let price = '25';
+                if (card.marketData && card.marketData.averagePrice && card.marketData.averagePrice.raw) {
+                    price = card.marketData.averagePrice.raw;
+                }
+                
                 // Calculate price change (mock data for demo)
                 const priceChange = Math.random() > 0.5 ? '+' : '-';
                 const changePercent = (Math.random() * 10 + 1).toFixed(1);
@@ -245,8 +254,8 @@ async function loadFeaturedCards() {
                         ${card.imageUrl ? `<img src="${card.imageUrl}" alt="${card.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">` : 'Card Image'}
                     </div>
                     <div class="card-name">${card.name}</div>
-                    <div class="card-set">${card.set.name} • ${card.rarity}</div>
-                    <div class="card-price">$${card.marketData.averagePrice.raw}.00 <span class="price-change ${changeClass}">${priceChange}${changePercent}%</span></div>
+                    <div class="card-set">${setName} • ${card.rarity}</div>
+                    <div class="card-price">$${price} <span class="price-change ${changeClass}">${priceChange}${changePercent}%</span></div>
                 `;
                 
                 featuredCardsContainer.appendChild(cardElement);
@@ -270,7 +279,7 @@ async function loadFeaturedCards() {
 
 async function loadTrendingCards() {
     try {
-        const response = await fetch('/api/cards');
+        const response = await fetch('/api/cards?limit=4');
         const data = await response.json();
         
         if (data.success && data.data.length > 0) {
@@ -279,10 +288,18 @@ async function loadTrendingCards() {
             
             trendingContainer.innerHTML = '';
             
-            // Use the first few cards as "trending" with mock price changes
-            data.data.slice(0, 4).forEach(card => {
+            data.data.forEach(card => {
                 const trendingItem = document.createElement('div');
                 trendingItem.className = 'trending-item';
+                
+                // Get set info (already populated in API response)
+                const setName = card.set ? card.set.name : 'Unknown Set';
+                
+                // Get price - handle missing marketData
+                let price = '25';
+                if (card.marketData && card.marketData.averagePrice && card.marketData.averagePrice.raw) {
+                    price = card.marketData.averagePrice.raw;
+                }
                 
                 // Generate mock trending data
                 const isPositive = Math.random() > 0.3; // 70% chance of positive trend
@@ -293,10 +310,10 @@ async function loadTrendingCards() {
                 trendingItem.innerHTML = `
                     <div class="trending-info">
                         <h4>${card.name}</h4>
-                        <p>${card.set.name} • ${card.rarity}</p>
+                        <p>${setName} • ${card.rarity}</p>
                     </div>
                     <div class="trending-price">
-                        <div class="card-price">$${card.marketData.averagePrice.raw}.00</div>
+                        <div class="card-price">$${price}</div>
                         <span class="price-change ${changeClass}">${changeSymbol}${changePercent}%</span>
                     </div>
                 `;
@@ -324,10 +341,140 @@ async function loadTrendingCards() {
     }
 }
 
+// Load Pokemon sets from API
+async function loadPokemonSets() {
+    try {
+        const [setsResponse, cardsResponse] = await Promise.all([
+            fetch('/api/sets?category=pokemon&limit=6'),
+            fetch('/api/cards')
+        ]);
+        
+        const setsData = await setsResponse.json();
+        const cardsData = await cardsResponse.json();
+        
+        if (setsData.success && setsData.data.length > 0) {
+            const setsContainer = document.getElementById('pokemonSets');
+            if (!setsContainer) return;
+            
+            // Create a map of set ID to random card image
+            const setImageMap = {};
+            if (cardsData.success) {
+                cardsData.data.forEach(card => {
+                    if (card.imageUrl && card.set && card.set._id && !setImageMap[card.set._id]) {
+                        setImageMap[card.set._id] = card.imageUrl;
+                    }
+                });
+            }
+            
+            setsContainer.innerHTML = '';
+            
+            setsData.data.forEach(set => {
+                const setElement = document.createElement('div');
+                setElement.className = 'card';
+                setElement.style.cursor = 'pointer';
+                
+                // Get a random card image from this set
+                const setImage = setImageMap[set._id];
+                
+                setElement.innerHTML = `
+                    <div class="card-image">
+                        ${setImage ? `<img src="${setImage}" alt="${set.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">` : '📦'}
+                    </div>
+                    <div class="card-name">${set.name}</div>
+                    <div class="card-set">${set.metadata?.series || 'Pokemon'} • ${set.releaseDate ? new Date(set.releaseDate).getFullYear() : 'Classic'}</div>
+                    <div class="card-price">${set.totalCards} cards</div>
+                `;
+                
+                // Add click handler to view set details
+                setElement.addEventListener('click', () => {
+                    viewSetDetails(set.slug, set.name);
+                });
+                
+                setsContainer.appendChild(setElement);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading Pokemon sets:', error);
+        const setsContainer = document.getElementById('pokemonSets');
+        if (setsContainer) {
+            setsContainer.innerHTML = `
+                <div class="card">
+                    <div class="card-image">Error</div>
+                    <div class="card-name">Failed to load sets</div>
+                    <div class="card-set">Please check API connection</div>
+                    <div class="card-price">0 cards</div>
+                </div>
+            `;
+        }
+    }
+}
+
+// View set details function
+async function viewSetDetails(setSlug, setName) {
+    try {
+        const response = await fetch(`/api/cards/set/${setSlug}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            // Check if set has cards
+            if (data.data.length === 0) {
+                alert(`No cards found for ${setName}
+
+This set appears to be empty in our database. It may be a placeholder or the cards haven't been imported yet.`);
+                return;
+            }
+            
+            // Create modal content with wider layout
+            let modalContent = `
+                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+                    <div style="background: white; padding: 2rem; border-radius: 12px; width: 95%; max-width: 1200px; max-height: 90%; overflow-y: auto; position: relative;">
+                        <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 1rem; right: 1rem; background: #ef4444; color: white; border: none; border-radius: 50%; width: 2rem; height: 2rem; cursor: pointer; font-size: 1.2rem;">×</button>
+                        <h2 style="margin-bottom: 1rem; color: #1f2937;">${setName}</h2>
+                        <p style="margin-bottom: 2rem; color: #6b7280;">${data.data.length} cards in this set</p>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.5rem;">
+            `;
+            
+            data.data.forEach(card => {
+                // Get price - handle missing marketData
+                let price = '25';
+                if (card.marketData && card.marketData.averagePrice && card.marketData.averagePrice.raw) {
+                    price = card.marketData.averagePrice.raw;
+                }
+                
+                modalContent += `
+                    <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; text-align: center;">
+                        <div style="width: 100%; height: 140px; background: #f3f4f6; border-radius: 4px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                            ${card.imageUrl ? `<img src="${card.imageUrl}" alt="${card.name}" style="max-width: 100%; max-height: 100%; object-fit: contain;">` : '🃏'}
+                        </div>
+                        <h4 style="font-size: 0.875rem; margin: 0.5rem 0; color: #1f2937;">${card.name}</h4>
+                        <p style="font-size: 0.75rem; color: #6b7280; margin: 0;">${card.rarity}</p>
+                        <p style="font-size: 0.75rem; color: #059669; margin: 0.25rem 0;">$${price}</p>
+                    </div>
+                `;
+            });
+            
+            modalContent += `
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add modal to page
+            const modalDiv = document.createElement('div');
+            modalDiv.innerHTML = modalContent;
+            document.body.appendChild(modalDiv);
+        }
+    } catch (error) {
+        console.error('Error loading set details:', error);
+        alert('Error loading set details. Please try again.');
+    }
+}
+
 // Load data when page loads
 document.addEventListener('DOMContentLoaded', function() {
     loadFeaturedCards();
     loadTrendingCards();
+    loadPokemonSets();
 });
 
 // Auto-login for demo purposes (remove in production)

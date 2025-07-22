@@ -115,12 +115,38 @@ kubectl get pods -l app.kubernetes.io/instance=collectibles-tracker
 kubectl get services -l app.kubernetes.io/instance=collectibles-tracker
 ```
 
-5. **Seed the database with sample data**
+5. **Seed the database with data**
+
+You have two options for populating the database:
+
+**Option A: Import Real Pokemon Cards (Recommended)**
 ```bash
 # Get the application pod name
 kubectl get pods -l app.kubernetes.io/name=collectibles-tracker-chart
 
-# Seed the database (replace POD_NAME with actual pod name)
+# Import specific Pokemon sets (replace POD_NAME with actual pod name)
+kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --sets base1,jungle,fossil
+
+# Example:
+kubectl exec -it collectibles-tracker-collectibles-tracker-chart-b9f689d55-llffp -- node server/scripts/importPokemon.js --sets base1,jungle,fossil
+
+# List all available Pokemon sets
+kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --list
+
+# Import just Base Set for testing
+kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --sets base1
+```
+
+This will import real Pokemon cards from the official Pokemon TCG API:
+- **Base Set**: 102 authentic Pokemon cards including Charizard, Blastoise, Venusaur
+- **Jungle**: 64 cards from the classic Jungle expansion
+- **Fossil**: 62 cards from the Fossil expansion
+- **Real card data**: Actual Pokemon card attributes, types, attacks, and high-quality images
+- **Expandable**: Easy to add more sets later
+
+**Option B: Use Sample Data (Development)**
+```bash
+# Seed with sample data (replace POD_NAME with actual pod name)
 kubectl exec -it <POD_NAME> -- node server/scripts/seedDatabase.js
 
 # Example:
