@@ -341,11 +341,15 @@ async function loadTrendingCards() {
     }
 }
 
-// Load Pokemon sets from API
-async function loadPokemonSets() {
+// Global pagination state
+let currentSetsPage = 1;
+const setsPerPage = 6;
+
+// Load Pokemon sets from API with pagination
+async function loadPokemonSets(page = 1) {
     try {
         const [setsResponse, cardsResponse] = await Promise.all([
-            fetch('/api/sets?category=pokemon&limit=6'),
+            fetch(`/api/sets?category=pokemon&limit=${setsPerPage}&page=${page}`),
             fetch('/api/cards')
         ]);
         
@@ -392,6 +396,11 @@ async function loadPokemonSets() {
                 
                 setsContainer.appendChild(setElement);
             });
+            
+            // Add pagination controls if there are more than 6 sets
+            if (setsData.pagination && setsData.pagination.pages > 1) {
+                addSetsPagination(setsData.pagination, setsContainer.parentElement);
+            }
         }
     } catch (error) {
         console.error('Error loading Pokemon sets:', error);
@@ -409,29 +418,172 @@ async function loadPokemonSets() {
     }
 }
 
-// View set details function
-async function viewSetDetails(setSlug, setName) {
+// Add pagination controls for sets
+function addSetsPagination(pagination, container) {
+    // Remove existing pagination
+    const existingPagination = container.querySelector('.pagination-controls');
+    if (existingPagination) {
+        existingPagination.remove();
+    }
+    
+    const paginationDiv = document.createElement('div');
+    paginationDiv.className = 'pagination-controls';
+    paginationDiv.style.cssText = `
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding: 1rem;
+    `;
+    
+    // Previous button
+    const prevBtn = document.createElement('button');
+    prevBtn.textContent = '← Previous';
+    prevBtn.disabled = pagination.page === 1;
+    prevBtn.style.cssText = `
+        padding: 0.5rem 1rem;
+        border: 1px solid #e5e7eb;
+        background: ${pagination.page === 1 ? '#f9fafb' : 'white'};
+        color: ${pagination.page === 1 ? '#9ca3af' : '#374151'};
+        border-radius: 6px;
+        cursor: ${pagination.page === 1 ? 'not-allowed' : 'pointer'};
+        font-weight: 500;
+    `;
+    
+    if (pagination.page > 1) {
+        prevBtn.addEventListener('click', () => {
+            currentSetsPage = pagination.page - 1;
+            loadPokemonSets(currentSetsPage);
+        });
+    }
+    
+    // Page info
+    const pageInfo = document.createElement('span');
+    pageInfo.textContent = `Page ${pagination.page} of ${pagination.pages}`;
+    pageInfo.style.cssText = `
+        color: #6b7280;
+        font-weight: 500;
+        min-width: 120px;
+        text-align: center;
+    `;
+    
+    // Next button
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = 'Next →';
+    nextBtn.disabled = pagination.page === pagination.pages;
+    nextBtn.style.cssText = `
+        padding: 0.5rem 1rem;
+        border: 1px solid #e5e7eb;
+        background: ${pagination.page === pagination.pages ? '#f9fafb' : 'white'};
+        color: ${pagination.page === pagination.pages ? '#9ca3af' : '#374151'};
+        border-radius: 6px;
+        cursor: ${pagination.page === pagination.pages ? 'not-allowed' : 'pointer'};
+        font-weight: 500;
+    `;
+    
+    if (pagination.page < pagination.pages) {
+        nextBtn.addEventListener('click', () => {
+            currentSetsPage = pagination.page + 1;
+            loadPokemonSets(currentSetsPage);
+        });
+    }
+    
+    paginationDiv.appendChild(prevBtn);
+    paginationDiv.appendChild(pageInfo);
+    paginationDiv.appendChild(nextBtn);
+    
+    container.appendChild(paginationDiv);
+}
+
+// View set details function with pagination
+async function viewSetDetails(setSlug, setName, page = 1) {
     try {
-        const response = await fetch(`/api/cards/set/${setSlug}`);
+        const cardsPerPage = 24; // Show 24 cards per page (6x4 grid)
+        const response = await fetch(`/api/cards/set/${setSlug}?page=${page}&limit=${cardsPerPage}`);
         const data = await response.json();
         
         if (data.success) {
             // Check if set has cards
-            if (data.data.length === 0) {
+            if (data.data.length === 0 && page === 1) {
                 alert(`No cards found for ${setName}
 
 This set appears to be empty in our database. It may be a placeholder or the cards haven't been imported yet.`);
                 return;
             }
             
-            // Create modal content with wider layout
-            let modalContent = `
-                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; align-items: center; justify-content: center;">
-                    <div style="background: white; padding: 2rem; border-radius: 12px; width: 95%; max-width: 1200px; max-height: 90%; overflow-y: auto; position: relative;">
-                        <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 1rem; right: 1rem; background: #ef4444; color: white; border: none; border-radius: 50%; width: 2rem; height: 2rem; cursor: pointer; font-size: 1.2rem;">×</button>
-                        <h2 style="margin-bottom: 1rem; color: #1f2937;">${setName}</h2>
-                        <p style="margin-bottom: 2rem; color: #6b7280;">${data.data.length} cards in this set</p>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.5rem;">
+            // Create modal content with pagination
+            const modalId = 'setDetailsModal';
+            
+            // Remove existing modal if it exists
+            const existingModal = document.getElementById(modalId);
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            const modalDiv = document.createElement('div');
+            modalDiv.id = modalId;
+            modalDiv.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.8);
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: white;
+                padding: 2rem;
+                border-radius: 12px;
+                width: 95%;
+                max-width: 1200px;
+                max-height: 90%;
+                overflow-y: auto;
+                position: relative;
+            `;
+            
+            // Close button
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '×';
+            closeBtn.style.cssText = `
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                background: #ef4444;
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 2rem;
+                height: 2rem;
+                cursor: pointer;
+                font-size: 1.2rem;
+                font-weight: bold;
+            `;
+            closeBtn.addEventListener('click', () => modalDiv.remove());
+            
+            // Header
+            const header = document.createElement('div');
+            header.innerHTML = `
+                <h2 style="margin-bottom: 0.5rem; color: #1f2937;">${setName}</h2>
+                <p style="margin-bottom: 2rem; color: #6b7280;">
+                    ${data.pagination ? `${data.pagination.total} total cards` : `${data.data.length} cards`}
+                    ${data.pagination && data.pagination.pages > 1 ? ` • Page ${data.pagination.page} of ${data.pagination.pages}` : ''}
+                </p>
+            `;
+            
+            // Cards grid
+            const cardsGrid = document.createElement('div');
+            cardsGrid.style.cssText = `
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 1.5rem;
+                margin-bottom: 2rem;
             `;
             
             data.data.forEach(card => {
@@ -441,27 +593,123 @@ This set appears to be empty in our database. It may be a placeholder or the car
                     price = card.marketData.averagePrice.raw;
                 }
                 
-                modalContent += `
-                    <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; text-align: center;">
-                        <div style="width: 100%; height: 140px; background: #f3f4f6; border-radius: 4px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
-                            ${card.imageUrl ? `<img src="${card.imageUrl}" alt="${card.name}" style="max-width: 100%; max-height: 100%; object-fit: contain;">` : '🃏'}
-                        </div>
-                        <h4 style="font-size: 0.875rem; margin: 0.5rem 0; color: #1f2937;">${card.name}</h4>
-                        <p style="font-size: 0.75rem; color: #6b7280; margin: 0;">${card.rarity}</p>
-                        <p style="font-size: 0.75rem; color: #059669; margin: 0.25rem 0;">$${price}</p>
-                    </div>
+                const cardElement = document.createElement('div');
+                cardElement.style.cssText = `
+                    border: 1px solid #e5e7eb;
+                    border-radius: 8px;
+                    padding: 1rem;
+                    text-align: center;
+                    transition: transform 0.2s, box-shadow 0.2s;
                 `;
+                
+                cardElement.innerHTML = `
+                    <div style="width: 100%; height: 140px; background: #f3f4f6; border-radius: 4px; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center;">
+                        ${card.imageUrl ? `<img src="${card.imageUrl}" alt="${card.name}" style="max-width: 100%; max-height: 100%; object-fit: contain;">` : '🃏'}
+                    </div>
+                    <h4 style="font-size: 0.875rem; margin: 0.5rem 0; color: #1f2937;">${card.name}</h4>
+                    <p style="font-size: 0.75rem; color: #6b7280; margin: 0;">${card.rarity}</p>
+                    <p style="font-size: 0.75rem; color: #059669; margin: 0.25rem 0;">$${price}</p>
+                `;
+                
+                // Add hover effect
+                cardElement.addEventListener('mouseenter', () => {
+                    cardElement.style.transform = 'translateY(-2px)';
+                    cardElement.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                });
+                
+                cardElement.addEventListener('mouseleave', () => {
+                    cardElement.style.transform = 'translateY(0)';
+                    cardElement.style.boxShadow = 'none';
+                });
+                
+                cardsGrid.appendChild(cardElement);
             });
             
-            modalContent += `
-                        </div>
-                    </div>
-                </div>
-            `;
+            // Pagination controls
+            const paginationDiv = document.createElement('div');
+            if (data.pagination && data.pagination.pages > 1) {
+                paginationDiv.style.cssText = `
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 1rem;
+                    padding: 1rem 0;
+                    border-top: 1px solid #e5e7eb;
+                `;
+                
+                // Previous button
+                const prevBtn = document.createElement('button');
+                prevBtn.textContent = '← Previous';
+                prevBtn.disabled = data.pagination.page === 1;
+                prevBtn.style.cssText = `
+                    padding: 0.5rem 1rem;
+                    border: 1px solid #e5e7eb;
+                    background: ${data.pagination.page === 1 ? '#f9fafb' : 'white'};
+                    color: ${data.pagination.page === 1 ? '#9ca3af' : '#374151'};
+                    border-radius: 6px;
+                    cursor: ${data.pagination.page === 1 ? 'not-allowed' : 'pointer'};
+                    font-weight: 500;
+                `;
+                
+                if (data.pagination.page > 1) {
+                    prevBtn.addEventListener('click', () => {
+                        viewSetDetails(setSlug, setName, data.pagination.page - 1);
+                    });
+                }
+                
+                // Page info
+                const pageInfo = document.createElement('span');
+                pageInfo.textContent = `Page ${data.pagination.page} of ${data.pagination.pages}`;
+                pageInfo.style.cssText = `
+                    color: #6b7280;
+                    font-weight: 500;
+                    min-width: 120px;
+                    text-align: center;
+                `;
+                
+                // Next button
+                const nextBtn = document.createElement('button');
+                nextBtn.textContent = 'Next →';
+                nextBtn.disabled = data.pagination.page === data.pagination.pages;
+                nextBtn.style.cssText = `
+                    padding: 0.5rem 1rem;
+                    border: 1px solid #e5e7eb;
+                    background: ${data.pagination.page === data.pagination.pages ? '#f9fafb' : 'white'};
+                    color: ${data.pagination.page === data.pagination.pages ? '#9ca3af' : '#374151'};
+                    border-radius: 6px;
+                    cursor: ${data.pagination.page === data.pagination.pages ? 'not-allowed' : 'pointer'};
+                    font-weight: 500;
+                `;
+                
+                if (data.pagination.page < data.pagination.pages) {
+                    nextBtn.addEventListener('click', () => {
+                        viewSetDetails(setSlug, setName, data.pagination.page + 1);
+                    });
+                }
+                
+                paginationDiv.appendChild(prevBtn);
+                paginationDiv.appendChild(pageInfo);
+                paginationDiv.appendChild(nextBtn);
+            }
+            
+            // Assemble modal
+            modalContent.appendChild(closeBtn);
+            modalContent.appendChild(header);
+            modalContent.appendChild(cardsGrid);
+            if (paginationDiv.children.length > 0) {
+                modalContent.appendChild(paginationDiv);
+            }
+            
+            modalDiv.appendChild(modalContent);
+            
+            // Close modal when clicking outside
+            modalDiv.addEventListener('click', (e) => {
+                if (e.target === modalDiv) {
+                    modalDiv.remove();
+                }
+            });
             
             // Add modal to page
-            const modalDiv = document.createElement('div');
-            modalDiv.innerHTML = modalContent;
             document.body.appendChild(modalDiv);
         }
     } catch (error) {
