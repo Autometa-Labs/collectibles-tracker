@@ -115,23 +115,37 @@ kubectl get pods -l app.kubernetes.io/instance=collectibles-tracker
 kubectl get services -l app.kubernetes.io/instance=collectibles-tracker
 ```
 
-5. **Seed the database with sample data**
+5. **Import Pokemon card data**
+
 ```bash
 # Get the application pod name
 kubectl get pods -l app.kubernetes.io/name=collectibles-tracker-chart
 
-# Seed the database (replace POD_NAME with actual pod name)
-kubectl exec -it <POD_NAME> -- node server/scripts/seedDatabase.js
+# Import specific Pokemon sets (replace POD_NAME with actual pod name)
+kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --sets base1,jungle,fossil
 
 # Example:
-kubectl exec -it collectibles-tracker-collectibles-tracker-chart-b9f689d55-llffp -- node server/scripts/seedDatabase.js
+kubectl exec -it collectibles-tracker-collectibles-tracker-chart-b9f689d55-llffp -- node server/scripts/importPokemon.js --sets base1,jungle,fossil
+
+# List all available Pokemon sets
+kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --list
+
+# List currently imported sets
+kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --imported
+
+# Clean up problematic/empty duplicate sets
+kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --cleanup
+
+# Import just Base Set for testing
+kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --sets base1
 ```
 
-This will populate the database with:
-- **Pokemon category** with sample sets (Base Set, Jungle, Scarlet & Violet)
-- **Sample Pokemon cards** including Charizard, Blastoise, Venusaur, and Pikachu
-- **Market data** with realistic pricing for different conditions (Raw, PSA 9, PSA 10)
-- **Additional categories** (Magic: The Gathering, NBA Cards, One Piece) for future expansion
+This will import real Pokemon cards from the official Pokemon TCG API:
+- **Base Set**: 102 authentic Pokemon cards including Charizard, Blastoise, Venusaur
+- **Jungle**: 64 cards from the classic Jungle expansion
+- **Fossil**: 62 cards from the Fossil expansion
+- **Real card data**: Actual Pokemon card attributes, types, attacks, and high-quality images
+- **Expandable**: Easy to add more sets later
 
 6. **Access the application**
 
@@ -185,20 +199,21 @@ cp .env.example .env
 # Edit .env and change MONGODB_URI to: mongodb://localhost:27017/collectibles-tracker
 ```
 
-3. **Install dependencies and seed the database**
+3. **Install dependencies and import Pokemon data**
 ```bash
 npm install
 cd server
 npm install
 
-# Seed the database with sample data
-npm run seed
+# Import Pokemon cards from the official API
+node scripts/importPokemon.js --sets base1,jungle,fossil
 ```
 
-This will populate your local MongoDB with the same sample data as the Kubernetes deployment:
-- Pokemon category with Base Set, Jungle, and Scarlet & Violet sets
-- Sample Pokemon cards (Charizard, Blastoise, Venusaur, Pikachu) with market pricing
-- Additional categories for future expansion
+This will populate your local MongoDB with real Pokemon card data:
+- **Base Set**: 102 authentic Pokemon cards including Charizard, Blastoise, Venusaur
+- **Jungle**: 64 cards from the classic Jungle expansion  
+- **Fossil**: 62 cards from the Fossil expansion
+- **Real card data**: Actual Pokemon card attributes, types, attacks, and high-quality images
 
 4. **Start the development server**
 ```bash

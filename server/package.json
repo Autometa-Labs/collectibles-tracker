@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "start": "node index.js",
-    "seed": "node scripts/seedDatabase.js"
+    "start": "node index.js"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -18,7 +17,8 @@
     "jsonwebtoken": "^9.0.2",
     "express-rate-limit": "^6.10.0",
     "helmet": "^7.0.0",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "pokemontcgsdk": "^2.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
