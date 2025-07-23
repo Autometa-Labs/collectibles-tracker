@@ -27,6 +27,8 @@ function parseArguments() {
   const options = {
     sets: [],
     listSets: false,
+    listImported: false,
+    cleanup: false,
     all: false,
     help: false
   };
@@ -43,6 +45,12 @@ function parseArguments() {
         break;
       case '--list':
         options.listSets = true;
+        break;
+      case '--imported':
+        options.listImported = true;
+        break;
+      case '--cleanup':
+        options.cleanup = true;
         break;
       case '--all':
         options.all = true;
@@ -76,6 +84,8 @@ USAGE:
 OPTIONS:
   --sets <set1,set2>    Import specific sets (comma-separated)
   --list               List all available sets from Pokemon TCG API
+  --imported           List currently imported sets in the database
+  --cleanup            Remove problematic/empty duplicate sets from database
   --all                Import all available sets (use with caution!)
   --help, -h           Show this help message
 
@@ -88,6 +98,9 @@ EXAMPLES:
 
   # List all available sets
   node server/scripts/importPokemon.js --list
+
+  # List currently imported sets
+  node server/scripts/importPokemon.js --imported
 
   # Import popular vintage sets (recommended for testing)
   node server/scripts/importPokemon.js --sets base1,jungle,fossil
@@ -164,6 +177,177 @@ async function listAvailableSets() {
 }
 
 /**
+ * List currently imported Pokemon sets from the database
+ */
+async function listImportedSets() {
+  try {
+    const Set = require('../models/Set');
+    const Category = require('../models/Category');
+    const Card = require('../models/Card');
+    
+    // Find Pokemon category
+    const pokemonCategory = await Category.findOne({ slug: 'pokemon' });
+    if (!pokemonCategory) {
+      console.log('\n❌ Pokemon category not found in database.');
+      console.log('Make sure you have imported some Pokemon sets first.');
+      return;
+    }
+    
+    // Get all Pokemon sets with card counts
+    const sets = await Set.aggregate([
+      { $match: { category: pokemonCategory._id } },
+      {
+        $lookup: {
+          from: 'cards',
+          localField: '_id',
+          foreignField: 'set',
+          as: 'cards'
+        }
+      },
+      {
+        $addFields: {
+          cardCount: { $size: '$cards' }
+        }
+      },
+      {
+        $project: {
+          name: 1,
+          setCode: 1,
+          releaseDate: 1,
+          totalCards: 1,
+          cardCount: 1,
+          'metadata.series': 1,
+          createdAt: 1
+        }
+      },
+      { $sort: { releaseDate: 1 } }
+    ]);
+    
+    if (sets.length === 0) {
+      console.log('\n📦 No Pokemon sets found in database.');
+      console.log('Use --sets to import some sets first.');
+      return;
+    }
+    
+    console.log('\nCurrently Imported Pokemon Sets:');
+    console.log('='.repeat(85));
+    console.log('Set Code'.padEnd(12) + 'Name'.padEnd(30) + 'Series'.padEnd(20) + 'Cards'.padEnd(8) + 'Imported');
+    console.log('-'.repeat(85));
+    
+    sets.forEach(set => {
+      const setCode = (set.setCode || 'Unknown').padEnd(12);
+      const name = (set.name || 'Unknown').padEnd(30);
+      const series = (set.metadata?.series || 'Unknown').padEnd(20);
+      const cardCount = `${set.cardCount}/${set.totalCards || '?'}`.padEnd(8);
+      const importedDate = set.createdAt ? set.createdAt.toISOString().split('T')[0] : 'Unknown';
+      
+      console.log(`${setCode}${name}${series}${cardCount}${importedDate}`);
+    });
+    
+    console.log('-'.repeat(85));
+    console.log(`Total: ${sets.length} sets imported`);
+    
+    // Summary statistics
+    const totalCards = sets.reduce((sum, set) => sum + set.cardCount, 0);
+    const totalExpected = sets.reduce((sum, set) => sum + (set.totalCards || 0), 0);
+    
+    console.log(`\n📊 Summary:`);
+    console.log(`   • ${totalCards} cards imported`);
+    if (totalExpected > 0) {
+      console.log(`   • ${totalExpected} cards expected`);
+      console.log(`   • ${((totalCards / totalExpected) * 100).toFixed(1)}% completion rate`);
+    }
+    
+  } catch (error) {
+    console.error('❌ Error listing imported sets:', error.message);
+    process.exit(1);
+  }
+}
+
+/**
+ * Clean up problematic/empty duplicate sets from the database
+ */
+async function cleanupProblematicSets() {
+  try {
+    const Set = require('../models/Set');
+    const Category = require('../models/Category');
+    const Card = require('../models/Card');
+    
+    console.log('Pokemon Database Cleanup');
+    console.log('='.repeat(50));
+    
+    // Find Pokemon category
+    const pokemonCategory = await Category.findOne({ slug: 'pokemon' });
+    if (!pokemonCategory) {
+      console.log('❌ Pokemon category not found in database.');
+      return;
+    }
+    
+    // Define problematic sets to remove (based on our analysis)
+    const problematicSetCodes = ['BS', 'BS1', 'JU', 'SVI'];
+    
+    console.log('Identifying problematic sets to remove...');
+    console.log(`Target set codes: ${problematicSetCodes.join(', ')}`);
+    
+    let totalSetsRemoved = 0;
+    let totalCardsRemoved = 0;
+    
+    for (const setCode of problematicSetCodes) {
+      try {
+        // Find the set
+        const set = await Set.findOne({ 
+          setCode: setCode, 
+          category: pokemonCategory._id 
+        });
+        
+        if (!set) {
+          console.log(`  Set ${setCode}: Not found (already removed or doesn't exist)`);
+          continue;
+        }
+        
+        // Count cards in this set
+        const cardCount = await Card.countDocuments({ set: set._id });
+        
+        console.log(`  Set ${setCode} (${set.name}): Found ${cardCount} cards`);
+        
+        // Remove all cards in this set
+        if (cardCount > 0) {
+          const cardDeleteResult = await Card.deleteMany({ set: set._id });
+          console.log(`    ✓ Removed ${cardDeleteResult.deletedCount} cards`);
+          totalCardsRemoved += cardDeleteResult.deletedCount;
+        }
+        
+        // Remove the set itself
+        await Set.deleteOne({ _id: set._id });
+        console.log(`    ✓ Removed set ${setCode}`);
+        totalSetsRemoved++;
+        
+      } catch (error) {
+        console.error(`  ❌ Error removing set ${setCode}:`, error.message);
+      }
+    }
+    
+    console.log('\n' + '='.repeat(50));
+    console.log('CLEANUP SUMMARY');
+    console.log('='.repeat(50));
+    console.log(`Sets removed: ${totalSetsRemoved}`);
+    console.log(`Cards removed: ${totalCardsRemoved}`);
+    console.log('='.repeat(50));
+    
+    if (totalSetsRemoved > 0) {
+      console.log('\n🎉 Cleanup completed successfully!');
+      console.log('Run --imported to see the updated database status.');
+    } else {
+      console.log('\n✓ No problematic sets found to remove.');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error during cleanup:', error.message);
+    process.exit(1);
+  }
+}
+
+/**
  * Import Pokemon sets
  */
 async function importPokemonSets(setIds) {
@@ -219,6 +403,18 @@ async function main() {
     // List available sets
     if (options.listSets) {
       await listAvailableSets();
+      return;
+    }
+
+    // List imported sets
+    if (options.listImported) {
+      await listImportedSets();
+      return;
+    }
+
+    // Cleanup problematic sets
+    if (options.cleanup) {
+      await cleanupProblematicSets();
       return;
     }
 

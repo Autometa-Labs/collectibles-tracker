@@ -130,6 +130,12 @@ kubectl exec -it collectibles-tracker-collectibles-tracker-chart-b9f689d55-llffp
 # List all available Pokemon sets
 kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --list
 
+# List currently imported sets
+kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --imported
+
+# Clean up problematic/empty duplicate sets
+kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --cleanup
+
 # Import just Base Set for testing
 kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --sets base1
 ```
