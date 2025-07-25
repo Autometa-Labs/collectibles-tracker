@@ -5,6 +5,14 @@ const SetModel = require('../../models/Set');
 const Card = require('../../models/Card');
 const DataMapper = require('./DataMapper');
 
+// Configure Pokemon TCG API key if available
+if (process.env.TCGPLAYER_API_KEY) {
+  pokemon.configure({ apiKey: process.env.TCGPLAYER_API_KEY });
+  console.log('✓ Pokemon TCG API key configured');
+} else {
+  console.log('⚠ No Pokemon TCG API key found - using rate-limited requests');
+}
+
 class PokemonImporter {
   constructor() {
     this.pokemonCategory = null;
