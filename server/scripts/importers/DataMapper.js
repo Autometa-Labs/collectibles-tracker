@@ -47,11 +47,7 @@ class DataMapper {
       sourceId: pokemonCard.id,
       sourceUrl: `https://api.pokemontcg.io/v2/cards/${pokemonCard.id}`,
       lastUpdated: new Date(),
-      // Leave marketData empty for now as requested
-      marketData: {
-        averagePrice: {},
-        priceRange: {}
-      }
+      marketData: this.mapMarketData(pokemonCard)
     };
   }
 
@@ -153,6 +149,74 @@ class DataMapper {
   static createCardSlug(name, setId, number) {
     const nameSlug = this.createSlug(name);
     return `${nameSlug}-${setId}-${number}`;
+  }
+
+  /**
+   * Maps market data from Pokemon TCG API to our schema
+   * @param {Object} pokemonCard - Card object from Pokemon TCG API
+   * @returns {Object} Mapped market data
+   */
+  static mapMarketData(pokemonCard) {
+    const marketData = {
+      lastUpdated: new Date(),
+      averagePrice: {},
+      priceRange: { low: 0, high: 0 },
+      sources: {}
+    };
+
+    // Extract TCGPlayer prices
+    if (pokemonCard.tcgplayer && pokemonCard.tcgplayer.prices) {
+      const tcgPrices = pokemonCard.tcgplayer.prices;
+      marketData.sources.tcgplayer = {
+        url: pokemonCard.tcgplayer.url,
+        updatedAt: pokemonCard.tcgplayer.updatedAt,
+        prices: tcgPrices
+      };
+
+      // Use the most common price variant (holofoil, then normal, then reverseHolofoil)
+      let primaryPrice = null;
+      if (tcgPrices.holofoil && tcgPrices.holofoil.market) {
+        primaryPrice = tcgPrices.holofoil.market;
+      } else if (tcgPrices.normal && tcgPrices.normal.market) {
+        primaryPrice = tcgPrices.normal.market;
+      } else if (tcgPrices.reverseHolofoil && tcgPrices.reverseHolofoil.market) {
+        primaryPrice = tcgPrices.reverseHolofoil.market;
+      }
+
+      if (primaryPrice) {
+        marketData.averagePrice.raw = primaryPrice;
+        marketData.priceRange.low = primaryPrice * 0.8; // Estimate low as 80% of market
+        marketData.priceRange.high = primaryPrice * 1.5; // Estimate high as 150% of market
+      }
+    }
+
+    // Extract Cardmarket prices (European market)
+    if (pokemonCard.cardmarket && pokemonCard.cardmarket.prices) {
+      const cmPrices = pokemonCard.cardmarket.prices;
+      marketData.sources.cardmarket = {
+        url: pokemonCard.cardmarket.url,
+        updatedAt: pokemonCard.cardmarket.updatedAt,
+        prices: cmPrices
+      };
+
+      // Use average sell price or trend price as backup
+      if (cmPrices.averageSellPrice && !marketData.averagePrice.raw) {
+        marketData.averagePrice.raw = cmPrices.averageSellPrice;
+        marketData.priceRange.low = cmPrices.lowPrice || cmPrices.averageSellPrice * 0.8;
+        marketData.priceRange.high = cmPrices.averageSellPrice * 1.5;
+      }
+    }
+
+    // If no price data found, return empty structure
+    if (!marketData.averagePrice.raw) {
+      return {
+        lastUpdated: new Date(),
+        averagePrice: {},
+        priceRange: { low: 0, high: 0 }
+      };
+    }
+
+    return marketData;
   }
 
   /**
