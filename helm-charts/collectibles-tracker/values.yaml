@@ -161,3 +161,6 @@ env:
   PORT: "8081"
   MONGODB_URI: "mongodb://collectibles-tracker-collectibles-tracker-chart-mongodb:27017/collectibles-tracker"
   JWT_SECRET: "your-super-secret-jwt-key-change-this-in-production"
+  # Pokemon TCG API key for reduced rate limiting
+  # Get your free API key at: https://dev.pokemontcg.io/
+  TCGPLAYER_API_KEY: ""
