@@ -115,37 +115,31 @@ kubectl get pods -l app.kubernetes.io/instance=collectibles-tracker
 kubectl get services -l app.kubernetes.io/instance=collectibles-tracker
 ```
 
-5. **Import Pokemon card data**
+5. **Import Pokemon card data with pricing**
 
 ```bash
 # Get the application pod name
 kubectl get pods -l app.kubernetes.io/name=collectibles-tracker-chart
 
-# Import specific Pokemon sets (replace POD_NAME with actual pod name)
-kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --sets base1,jungle,fossil
-
-# Example:
-kubectl exec -it collectibles-tracker-collectibles-tracker-chart-b9f689d55-llffp -- node server/scripts/importPokemon.js --sets base1,jungle,fossil
-
-# List all available Pokemon sets
-kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --list
-
-# List currently imported sets
-kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --imported
-
-# Clean up problematic/empty duplicate sets
-kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --cleanup
+# Import popular vintage sets with complete pricing data
+kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --sets base1,base2,gym1,gym2
 
 # Import just Base Set for testing
 kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --sets base1
+
+# Check what's already imported
+kubectl exec -it <POD_NAME> -- node server/scripts/importPokemon.js --imported
 ```
 
-This will import real Pokemon cards from the official Pokemon TCG API:
+This will import real Pokemon cards from the official Pokemon TCG API with **complete pricing data**:
 - **Base Set**: 102 authentic Pokemon cards including Charizard, Blastoise, Venusaur
-- **Jungle**: 64 cards from the classic Jungle expansion
-- **Fossil**: 62 cards from the Fossil expansion
+- **Jungle (base2)**: 64 cards from the classic Jungle expansion
+- **Gym Heroes/Challenge**: 132 cards each from the Gym series
 - **Real card data**: Actual Pokemon card attributes, types, attacks, and high-quality images
-- **Expandable**: Easy to add more sets later
+- **Complete pricing**: Real-time market prices from TCGPlayer and CardMarket
+- **Price history**: Historical pricing data and trends
+
+📖 **For detailed import instructions, see [Pokemon Import Guide](docs/POKEMON_IMPORT_GUIDE.md)**
 
 6. **Access the application**
 
